@@ -1,6 +1,6 @@
 package ast
 
-import "lemon/token"
+import "banana/token"
 
 type Node interface {
 	TokenLiteral() string

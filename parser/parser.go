@@ -1,9 +1,9 @@
 package parser
 
 import (
-	"lemon/ast"
-	"lemon/lexer"
-	"lemon/token"
+	"banana/ast"
+	"banana/lexer"
+	"banana/token"
 )
 
 type Parser struct {

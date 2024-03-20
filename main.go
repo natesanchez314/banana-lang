@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"os"
 	"os/user"
-	"lemon/repl"
+	"banana/repl"
 )
 
 func main() {
@@ -12,6 +12,6 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
-	fmt.Printf("Hello %s! Welcome to the Lemon programming language!\n", user.Username)
+	fmt.Printf("Hello %s! Welcome to the Banana programming language!\n", user.Username)
 	repl.Start(os.Stdin, os.Stdout)
 }

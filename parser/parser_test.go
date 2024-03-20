@@ -2,8 +2,8 @@ package parser
 
 import (
 	"testing"
-	"lemon/ast"
-	"lemon/lexer"
+	"banana/ast"
+	"banana/lexer"
 )
 
 func TestLetStatments(t *testing.T) {
