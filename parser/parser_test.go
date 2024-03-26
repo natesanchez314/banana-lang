@@ -7,6 +7,35 @@ import (
 	"fmt"
 )
 
+func TestCallExpressionParsing(t *testing.T) {
+	input := "add(1, 2 * 3, 4 + 5);"
+	l := lexer.New(input)
+	p := New(l)
+	program := p.ParseProgram()
+	checkParserErrors(t, p)
+
+	if len(program.Statements) != 1 {
+		t.Fatalf("program.Statements does not contain %d statements, got=%d\n", 1, len(program.Statements))
+	}
+	stmt, ok := program.Statements[0].(*ast.ExpressionStatement)
+	if !ok {
+		t.Fatalf("program.Statements[0] is not ast.ExpressionStatement, got=%T", program.Statements[0])
+	}
+	exp, ok := stmt.Expression.(*ast.CallExpression)
+	if !ok {
+		t.Fatalf("stmt.Exression is not ast.CallExpressionm got-%T", stmt.Expression)
+	}
+	if !testIdentifier(t, exp.Fun, "add") {
+		return
+	}
+	if len(exp.Args) != 3 {
+		t.Fatalf("wrong length of args, got=%d", len(exp.Args))
+	}
+	testLiteralExpression(t, exp.Args[0], 1)
+	testInfixExpression(t, exp.Args[1], 2, "*", 3)
+	testInfixExpression(t, exp.Args[2], 4, "+", 5)
+}
+
 func TestFunctionParameterParsing(t *testing.T) {
 	tests := []struct {
 		input string
