@@ -7,6 +7,75 @@ import (
 	"fmt"
 )
 
+func TestFunctionParameterParsing(t *testing.T) {
+	tests := []struct {
+		input string
+		expectedParams []string
+	} {
+		{input: "fn() {}", expectedParams: []string{}},
+		{input: "fn(x) {}", expectedParams: []string{"x"}},
+		{input: "fn(x, y, z) {}", expectedParams: []string{"x", "y", "z"}},
+	}
+
+	for _, tt := range tests {
+		l := lexer.New(tt.input) 
+		p := New(l)
+		program := p.ParseProgram()
+		checkParserErrors(t, p)
+
+		stmt := program.Statements[0].(*ast.ExpressionStatement)
+		fun := stmt.Expression.(*ast.FunctionLiteral)
+		if len(fun.Parameters) != len(tt.expectedParams) {
+			t.Errorf("length of parameters wrong. Expected %d, got=%d.\n", len(tt.expectedParams), len(fun.Parameters))
+		}
+
+		for i, id := range tt.expectedParams {
+			testLiteralExpression(t, fun.Parameters[i], id)
+		}
+	}
+}
+
+func TestFunctionLiteralParsing(t *testing.T) {
+	input := `fn(x, y) { x+ y }`
+
+	l := lexer.New(input)
+	p := New(l)
+	program := p.ParseProgram()
+	checkParserErrors(t, p)
+
+	if len(program.Statements) != 1 {
+		t.Fatalf("program.Statements does not contain %d statements, got=%d\n", 1, len(program.Statements))
+	}
+
+	stmt, ok := program.Statements[0].(*ast.ExpressionStatement)
+	if !ok {
+		t.Fatalf("program.Statements[0] is not ast.ExpressionStatement, got=%T", program.Statements[0])
+	}
+
+	fun, ok := stmt.Expression.(*ast.FunctionLiteral)
+	if !ok {
+		t.Fatalf("stmt.Exression is not ast.FunctionLiteral, got =%T", stmt.Expression)
+	}
+
+	if len(fun.Parameters) != 2 {
+		t.Fatalf("fun literal parameters wrong. Expected %d, got=%d\n", 2, len(fun.Parameters))
+	}
+	testLiteralExpression(t, fun.Parameters[0], "x")
+	testLiteralExpression(t, fun.Parameters[1], "y")
+
+	if len(fun.Body.Statements) != 1 {
+		t.Fatalf("fun body stmt is not ast.ExpressionStatement, got=%T", fun.Body.Statements[0])
+	}
+
+
+	bodyStmt, ok := fun.Body.Statements[0].(*ast.ExpressionStatement)
+	if !ok {
+		t.Fatalf("fun body stmt is not ast.ExpressionStatement, got=%T", fun.Body.Statements[0])
+	}
+
+	testInfixExpression(t, bodyStmt.Expression, "x", "+", "y")
+}
+
 func TestIfExpression(t *testing.T) {
 	input := `if (x < y) { x }`
 
