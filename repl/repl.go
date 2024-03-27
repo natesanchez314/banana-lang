@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"fmt"
 	"io"
+	"banana/evaluator"
 	"banana/lexer"
 	"banana/parser"
 )
@@ -19,6 +20,7 @@ func Start(in io.Reader, out io.Writer) {
 		if !scanned {
 			return
 		}
+
 		line := scanner.Text()
 		l := lexer.New(line)
 		p := parser.New(l)
@@ -29,8 +31,11 @@ func Start(in io.Reader, out io.Writer) {
 			return
 		}
 
-		io.WriteString(out, program.String())
-		io.WriteString(out, "\n")
+		evaluated := evaluator.Eval(program)
+		if evaluated != nil {
+			io.WriteString(out, evaluated.Inspect())
+			io.WriteString(out, "\n")
+		}
 	}
 }
 
