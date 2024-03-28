@@ -5,9 +5,10 @@ import "fmt"
 type ObjectType string
 
 const (
-	INTEGER_OBJ = "INTEGER"
 	BOOLEAN_OBJ = "	BOOLEAN"
+	INTEGER_OBJ = "INTEGER"
 	NULL_OBJ = "NULL"
+	RETURN_VALUE_OBJ = "RETURN_VALUE"
 )
 
 type Object interface {
@@ -15,18 +16,24 @@ type Object interface {
 	Inspect() string
 }
 
-type Integer struct {
-	Val int64
-}
-func (i *Integer) Type() ObjectType { return INTEGER_OBJ }
-func (i *Integer) Inspect() string { return fmt.Sprintf("%d", i.Val) }
-
 type Boolean struct {
 	Val bool
 }
 func (b *Boolean) Type() ObjectType { return BOOLEAN_OBJ }
 func (b *Boolean) Inspect() string { return fmt.Sprintf("%t", b.Val) }
 
+type Integer struct {
+	Val int64
+}
+func (i *Integer) Type() ObjectType { return INTEGER_OBJ }
+func (i *Integer) Inspect() string { return fmt.Sprintf("%d", i.Val) }
+
 type Null struct {}
 func (n *Null) Type() ObjectType { return NULL_OBJ }
 func (n *Null) Inspect() string { return "null" }
+
+type ReturnValue struct {
+	Val Object
+}
+func (rv *ReturnValue) Type() ObjectType { return RETURN_VALUE_OBJ }
+func (rv *ReturnValue) Inspect() string { return rv.Val.Inspect() }
