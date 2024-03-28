@@ -79,13 +79,13 @@ func (rs *ReturnStatement) String() string {
 	return out.String()
 }
 
-type BlockStatment struct {
+type BlockStatement struct {
 	Token token.Token
 	Statements []Statement
 }
-func (bs *BlockStatment) statementNode() {}
-func (bs *BlockStatment) TokenLiteral() string { return bs.Token.Literal }
-func (bs *BlockStatment) String() string {
+func (bs *BlockStatement) statementNode() {}
+func (bs *BlockStatement) TokenLiteral() string { return bs.Token.Literal }
+func (bs *BlockStatement) String() string {
 	var out bytes.Buffer
 	for _, s := range bs.Statements {
 		out.WriteString(s.String())
@@ -170,8 +170,8 @@ func (b *Boolean) String() string { return b.Token.Literal }
 type IfExpression struct {
 	Token token.Token
 	Condition Expression
-	Consequence *BlockStatment
-	Alternative *BlockStatment
+	Consequence *BlockStatement
+	Alternative *BlockStatement
 }
 func (ie *IfExpression) expressionNode() {}
 func (ie *IfExpression) TokenLiteral() string { return ie.Token.Literal }
@@ -191,7 +191,7 @@ func (ie *IfExpression) String() string {
 type FunctionLiteral struct {
 	Token token.Token
 	Parameters []*Identifier
-	Body *BlockStatment
+	Body *BlockStatement
 }
 func (fl *FunctionLiteral) expressionNode() {}
 func (fl *FunctionLiteral) TokenLiteral() string { return fl.Token.Literal }
