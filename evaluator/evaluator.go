@@ -21,6 +21,10 @@ func Eval(node ast.Node) object.Object {
 	// Expressions
 	case *ast.Boolean:
 		return nativeBoolToBooleanObject(node.Val)
+	case *ast.InfixExpression:
+		left := Eval(node.Left)
+		right := Eval(node.Right)
+		return evalInfixExpression(node.Op, left, right)
 	case *ast.IntegerLiteral:
 		return &object.Integer{Val: node.Val}
 	case *ast.PrefixExpression:
@@ -36,6 +40,51 @@ func evalStatements(stmts []ast.Statement) object.Object {
 		res = Eval(stmt)
 	}
 	return res
+}
+
+func nativeBoolToBooleanObject(input bool) *object.Boolean {
+	if input {
+		return TRUE
+	}
+	return FALSE
+}
+
+func evalInfixExpression(op string, left, right object.Object) object.Object {
+	switch {
+	case left.Type() == object.INTEGER_OBJ && right.Type() == object.INTEGER_OBJ:
+		return evalIntegerInfixExpression(op, left, right)
+	case op == "==":
+		return nativeBoolToBooleanObject(left == right)
+	case op == "!=":
+		return nativeBoolToBooleanObject(left != right)
+	default:
+		return NULL	
+	}
+}
+
+func evalIntegerInfixExpression(op string, left, right object.Object) object.Object {
+	leftVal := left.(*object.Integer).Val
+	rightVal := right.(*object.Integer).Val
+	switch op {
+	case "+":
+		return &object.Integer{Val: leftVal + rightVal}
+	case "-":
+		return &object.Integer{Val: leftVal - rightVal}
+	case "*":
+		return &object.Integer{Val: leftVal * rightVal}
+	case "/":
+		return &object.Integer{Val: leftVal / rightVal}
+	case "<":
+		return nativeBoolToBooleanObject(leftVal < rightVal)
+	case ">":
+		return nativeBoolToBooleanObject(leftVal > rightVal)
+	case "==":
+		return nativeBoolToBooleanObject(leftVal == rightVal)
+	case "!=":
+		return nativeBoolToBooleanObject(leftVal != rightVal)
+	default:
+		return NULL
+	}
 }
 
 func evalPrefixExpression(op string, right object.Object) object.Object {
@@ -68,11 +117,4 @@ func evalMinusPrefixOperatorExpression(right object.Object) object.Object {
 	}
 	val := right.(*object.Integer).Val
 	return &object.Integer{Val: -val}
-}
-
-func nativeBoolToBooleanObject(input bool) *object.Boolean {
-	if input {
-		return TRUE
-	}
-	return FALSE
 }
