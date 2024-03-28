@@ -5,7 +5,8 @@ import "fmt"
 type ObjectType string
 
 const (
-	BOOLEAN_OBJ = "	BOOLEAN"
+	BOOLEAN_OBJ = "BOOLEAN"
+	ERROR_OBJ = "ERROR"
 	INTEGER_OBJ = "INTEGER"
 	NULL_OBJ = "NULL"
 	RETURN_VALUE_OBJ = "RETURN_VALUE"
@@ -21,6 +22,12 @@ type Boolean struct {
 }
 func (b *Boolean) Type() ObjectType { return BOOLEAN_OBJ }
 func (b *Boolean) Inspect() string { return fmt.Sprintf("%t", b.Val) }
+
+type Error struct {
+	Msg string
+}
+func (e *Error) Type() ObjectType { return ERROR_OBJ }
+func (e *Error) Inspect() string { return "ERROR: " + e.Msg }
 
 type Integer struct {
 	Val int64
