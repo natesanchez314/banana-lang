@@ -79,6 +79,8 @@ func Eval(node ast.Node, env *object.Environment) object.Object {
 			return right
 		}
 		return evalPrefixExpression(node.Op, right)
+	case *ast.StringLiteral:
+		return &object.String{Val: node.Val}
 	}
 	return nil
 }

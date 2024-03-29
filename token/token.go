@@ -14,6 +14,7 @@ const (
 	// Identifiers & literals
 	ID 			= "ID"
 	INT 		= "INT"
+	STRING		= "STRING"
 	
 	// Operators
 	ASSIGN 		= "="
