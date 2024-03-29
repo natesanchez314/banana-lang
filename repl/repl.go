@@ -6,6 +6,7 @@ import (
 	"io"
 	"banana/evaluator"
 	"banana/lexer"
+	"banana/object"
 	"banana/parser"
 )
 

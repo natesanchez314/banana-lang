@@ -11,6 +11,7 @@ type ObjectType string
 
 const (
 	BOOLEAN_OBJ = "BOOLEAN"
+	BUILTIN_OBJ = "BUILTIN"
 	ERROR_OBJ = "ERROR"
 	FUNCTION_OBJ = "FUNCTION"
 	INTEGER_OBJ = "INTEGER"
@@ -29,6 +30,13 @@ type Boolean struct {
 }
 func (b *Boolean) Type() ObjectType { return BOOLEAN_OBJ }
 func (b *Boolean) Inspect() string { return fmt.Sprintf("%t", b.Val) }
+
+type BuiltinFunction func(args ...Object) Object
+type Builtin struct {
+	Fn BuiltinFunction
+}
+func (b *Builtin) Type() ObjectType { return BUILTIN_OBJ }
+func (b *Builtin) Inspect() string { return "builtin function" }
 
 type Error struct {
 	Msg string

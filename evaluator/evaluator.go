@@ -12,6 +12,10 @@ var(
 	FALSE = &object.Boolean{Val: false}
 )
 
+const(
+	unknownInfixOp string = "Unknown operator: %s %s %s"
+)
+
 func isError(obj object.Object) bool {
 	if obj != nil {
 		return obj.Type() == object.ERROR_OBJ
@@ -141,13 +145,16 @@ func evalExpressions(exps []ast.Expression, env *object.Environment) []object.Ob
 }
 
 func applyFunction(fn object.Object, args []object.Object) object.Object {
-	function, ok := fn.(*object.Function)
-	if !ok {
+	switch fn := fn.(type) {
+	case *object.Function:
+		extendedEnv := extendFunctionEnv(fn, args)
+		evaluated := Eval(fn.Body, extendedEnv)
+		return unwrapReturnValue(evaluated)
+	case *object.Builtin:
+		return fn.Fn(args...)
+	default:
 		return newError("Not a function: %s", fn.Type())
 	}
-	extendedEnv := extendFunctionEnv(function, args)
-	evaluated := Eval(function.Body, extendedEnv)
-	return unwrapReturnValue(evaluated)
 }
 
 func extendFunctionEnv(fn *object.Function, args []object.Object) *object.Environment {
@@ -173,11 +180,13 @@ func nativeBoolToBooleanObject(input bool) *object.Boolean {
 }
 
 func evalIdentifier(i *ast.Identifier, env *object.Environment) object.Object {
-	val, ok := env.Get(i.Val) 
-	if !ok {
-		return newError("Identifier not found: " + i.Val)
+	if val, ok := env.Get(i.Val); ok {
+		return val
 	}
-	return val
+	if builtin, ok := builtins[i.Val]; ok {
+		return builtin
+	}
+	return newError("Identifier not found: " + i.Val)
 }
 
 func evalIfExpression(ie *ast.IfExpression, env *object.Environment) object.Object {
@@ -220,7 +229,7 @@ func evalInfixExpression(op string, left, right object.Object) object.Object {
 	case left.Type() != right.Type():
 		return newError("Type mismatch: %s %s %s", left.Type(), op, right.Type())
 	default:
-		return newError("Unknown operator: %s %s %s", left.Type(), op, right.Type())
+		return newError(unknownInfixOp, left.Type(), op, right.Type())
 	}
 }
 
@@ -245,7 +254,7 @@ func evalIntegerInfixExpression(op string, left, right object.Object) object.Obj
 	case "!=":
 		return nativeBoolToBooleanObject(leftVal != rightVal)
 	default:
-		return newError("Unknown operator: %s %s %s", left.Type(), op, right.Type())
+		return newError(unknownInfixOp, left.Type(), op, right.Type())
 	}
 }
 
