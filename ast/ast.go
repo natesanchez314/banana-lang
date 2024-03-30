@@ -53,6 +53,7 @@ func (bs *BlockStatement) String() string {
 	for _, s := range bs.Statements {
 		out.WriteString(s.String())
 	}
+	
 	return out.String()
 }
 
@@ -86,23 +87,6 @@ func (ls *LetStatement) String() string {
 		out.WriteString(ls.Val.String())
 	}
 	out.WriteString(";")
-
-	return out.String()
-}
-
-type PrefixExpression struct {
-	Token token.Token
-	Op string
-	Right Expression
-}
-func (pe *PrefixExpression) expressionNode() {}
-func (pe *PrefixExpression) TokenLiteral() string { return pe.Token.Literal }
-func (pe *PrefixExpression) String() string {
-	var out bytes.Buffer
-	out.WriteString("(")
-	out.WriteString(pe.Op)
-	out.WriteString(pe.Right.String())
-	out.WriteString(")")
 
 	return out.String()
 }
@@ -168,6 +152,7 @@ func (ce *CallExpression) String() string {
 	out.WriteString("(")
 	out.WriteString(strings.Join(args, ", "))
 	out.WriteString(")")
+
 	return out.String()
 }
 
@@ -189,6 +174,7 @@ func (fl *FunctionLiteral) String() string {
 	out.WriteString(strings.Join(params, ", "))
 	out.WriteString(") ")
 	out.WriteString(fl.Body.String())
+
 	return out.String()
 }
 
@@ -218,6 +204,25 @@ func (ie *IfExpression) String() string {
 		out.WriteString("else ")
 		out.WriteString(ie.Alternative.String())
 	}
+
+	return out.String()
+}
+
+type IndexExpression struct {
+	Token token.Token
+	Left Expression
+	Index Expression
+}
+func (ie *IndexExpression) expressionNode() {}
+func (ie *IndexExpression) TokenLiteral() string { return ie.Token.Literal }
+func (ie *IndexExpression) String() string {
+	var out bytes.Buffer
+	out.WriteString("(")
+	out.WriteString(ie.Left.String())
+	out.WriteString("[")
+	out.WriteString(ie.Index.String())
+	out.WriteString("]")
+	
 	return out.String()
 }
 
@@ -256,3 +261,20 @@ type StringLiteral struct {
 func (sl *StringLiteral) expressionNode() {}
 func (sl *StringLiteral) TokenLiteral() string { return sl.Token.Literal }
 func (sl *StringLiteral) String() string { return sl.Token.Literal }
+
+type PrefixExpression struct {
+	Token token.Token
+	Op string
+	Right Expression
+}
+func (pe *PrefixExpression) expressionNode() {}
+func (pe *PrefixExpression) TokenLiteral() string { return pe.Token.Literal }
+func (pe *PrefixExpression) String() string {
+	var out bytes.Buffer
+	out.WriteString("(")
+	out.WriteString(pe.Op)
+	out.WriteString(pe.Right.String())
+	out.WriteString(")")
+
+	return out.String()
+}
