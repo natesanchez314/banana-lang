@@ -3,6 +3,7 @@ package object
 import(
 	"bytes"
 	"fmt"
+	"hash/fnv"
 	"strings"
 	"banana/ast"
 )
@@ -13,6 +14,7 @@ const (
 	ARRAY_OBJ = "ARRAY"
 	BOOLEAN_OBJ = "BOOLEAN"
 	BUILTIN_OBJ = "BUILTIN"
+	DICT_OBJ = "DICT"
 	ERROR_OBJ = "ERROR"
 	FUNCTION_OBJ = "FUNCTION"
 	INTEGER_OBJ = "INTEGER"
@@ -24,6 +26,10 @@ const (
 type Object interface {
 	Type() ObjectType
 	Inspect() string
+}
+
+type Hashable interface {
+	DictKey() DictKey
 }
 
 type Array struct {
@@ -48,6 +54,15 @@ type Boolean struct {
 }
 func (b *Boolean) Type() ObjectType { return BOOLEAN_OBJ }
 func (b *Boolean) Inspect() string { return fmt.Sprintf("%t", b.Val) }
+func (b *Boolean) DictKey() DictKey {
+	var val uint64
+	if b.Val {
+		val = 1
+	} else {
+		val = 0
+	}
+	return DictKey{Type: b.Type(), Val: val}
+}
 
 type BuiltinFunction func(args ...Object) Object
 type Builtin struct {
@@ -55,6 +70,33 @@ type Builtin struct {
 }
 func (b *Builtin) Type() ObjectType { return BUILTIN_OBJ }
 func (b *Builtin) Inspect() string { return "builtin function" }
+
+type Dict struct {
+	Pairs map[DictKey]DictPair
+}
+func (d *Dict) Type() ObjectType { return DICT_OBJ }
+func (d *Dict) Inspect() string {
+	var out bytes.Buffer
+	pairs := []string{}
+	for _, pair := range d.Pairs {
+		pairs = append(pairs, fmt.Sprintf("%s: %s", pair.Key.Inspect(), pair.Val.Inspect()))
+	}
+	out.WriteString("{")
+	out.WriteString(strings.Join(pairs, ", "))
+	out.WriteString("}")
+
+	return out.String()
+} 
+
+type DictKey struct {
+	Type ObjectType
+	Val uint64
+}
+
+type DictPair struct {
+	Key Object
+	Val Object
+}
 
 type Error struct {
 	Msg string
@@ -89,6 +131,7 @@ type Integer struct {
 }
 func (i *Integer) Type() ObjectType { return INTEGER_OBJ }
 func (i *Integer) Inspect() string { return fmt.Sprintf("%d", i.Val) }
+func (i *Integer) DictKey() DictKey { return DictKey{Type: i.Type(), Val: uint64(i.Val)} }
 
 type Null struct {}
 func (n *Null) Type() ObjectType { return NULL_OBJ }
@@ -105,3 +148,8 @@ type String struct {
 }
 func (s *String) Type() ObjectType { return STRING_OBJ }
 func (s *String) Inspect() string { return s.Val }
+func (s *String) DictKey() DictKey {
+	h := fnv.New64a()
+	h.Write([]byte(s.Val))
+	return DictKey{Type: s.Type(), Val: h.Sum64()}
+}

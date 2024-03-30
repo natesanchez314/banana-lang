@@ -10,7 +10,52 @@ import (
 const(
 	incorrectStmtsLen string = "program.Statements does not contain %d statements, got=%d\n"
 	notExprStmt string = "program.Statements[0] is not ast.ExpressionStatement, got=%T"
-)     
+)  
+
+func TestParsingEmptyDictLiteral(t *testing.T) {
+	input := "{}"
+	l := lexer.New(input)
+	p := New(l)
+	program := p.ParseProgram()
+	checkParserErrors(t, p)
+	stmt := program.Statements[0].(*ast.ExpressionStatement)
+	dict, ok := stmt.Expression.(*ast.DictLiteral)
+	if !ok {
+		t.Fatalf("Exp is not *ast.DictLiteral, got=%T", stmt.Expression)
+	}
+	if len(dict.Pairs) != 0 {
+		t.Errorf("dict.Pairs has wrong length, got=%d", len(dict.Pairs))
+	}
+}
+
+func TestParsingDictLiteralsStringKeys(t *testing.T) {
+	input := `{"one": 1, "two": 2, "three": 3}`
+	l := lexer.New(input)
+	p := New(l)
+	program := p.ParseProgram()
+	checkParserErrors(t, p)
+	stmt := program.Statements[0].(*ast.ExpressionStatement)
+	dict, ok := stmt.Expression.(*ast.DictLiteral)
+	if !ok {
+		t.Fatalf("Exp is not *ast.DictLiteral, got=%T", stmt.Expression)
+	}
+	if len(dict.Pairs) != 3 {
+		t.Errorf("dict.Pairs has wrong length, got=%d", len(dict.Pairs))
+	}
+	expected := map[string]int64{
+		"one": 1,
+		"two": 2,
+		"three": 3,
+	}
+	for key, val := range dict.Pairs {
+		literal, ok := key.(*ast.StringLiteral)
+		if !ok {
+			t.Errorf("Key is not ast.StringLiteral, got=%T", key)
+		}
+		expectedVal := expected[literal.String()]
+		testIntegerLiteral(t, val, expectedVal)
+	}
+}
 
 func TestParsingIndexExpressions(t *testing.T) {
 	input := "myArray[1 + 1]"

@@ -63,6 +63,8 @@ func Eval(node ast.Node, env *object.Environment) object.Object {
 			return args[0]
 		}
 		return applyFunction(function, args)
+	case *ast.DictLiteral:
+		return evalDictLiteral(node, env)
 	case *ast.FunctionLiteral:
 		params := node.Parameters
 		body := node.Body
@@ -160,6 +162,27 @@ func evalExpressions(exps []ast.Expression, env *object.Environment) []object.Ob
 	return res
 }
 
+func evalDictLiteral(node *ast.DictLiteral, env *object.Environment) object.Object {
+	pairs := make(map[object.DictKey]object.DictPair)
+	for keyNode, valNode := range node.Pairs {
+		key := Eval(keyNode, env)
+		if isError(key) {
+			return key
+		}
+		dictKey, ok := key.(object.Hashable)
+		if !ok {
+			return newError("Unusable as dict key: %s", key.Type())
+		}
+		val := Eval(valNode, env)
+		if isError(val) {
+			return val
+		}
+		hashed := dictKey.DictKey()
+		pairs[hashed] = object.DictPair{Key: key, Val: val}
+	}
+	return &object.Dict{Pairs: pairs}
+}
+
 func applyFunction(fn object.Object, args []object.Object) object.Object {
 	switch fn := fn.(type) {
 	case *object.Function:
@@ -236,6 +259,8 @@ func evalIndexExpression(left, index object.Object) object.Object {
 	switch {
 	case left.Type() == object.ARRAY_OBJ && index.Type() == object.INTEGER_OBJ:
 		return evalArrayIndexExpression(left, index)
+	case left.Type() == object.DICT_OBJ:
+		return evalDictIndexExpression(left, index)
 	default:
 		return newError("Index operator not supported: %s", left.Type())
 	}
@@ -250,6 +275,19 @@ func evalArrayIndexExpression(array, index object.Object) object.Object {
 	}
 	
 	return arrayObject.Elements[idx]
+}
+
+func evalDictIndexExpression(dict, index object.Object) object.Object {
+	dictObject := dict.(*object.Dict)
+	key, ok := index.(object.Hashable)
+	if !ok {
+		return newError("Unusable as dict key: %s", index.Type())
+	}
+	pair, ok := dictObject.Pairs[key.DictKey()]
+	if !ok {
+		return NULL
+	}
+	return pair.Val
 }
 
 func evalInfixExpression(op string, left, right object.Object) object.Object {

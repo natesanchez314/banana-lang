@@ -156,6 +156,25 @@ func (ce *CallExpression) String() string {
 	return out.String()
 }
 
+type DictLiteral struct {
+	Token token.Token
+	Pairs map[Expression]Expression
+}
+func (dl *DictLiteral) expressionNode() {}
+func (dl *DictLiteral) TokenLiteral() string { return dl.Token.Literal }
+func (dl *DictLiteral) String() string {
+	var out bytes.Buffer
+	pairs := []string{}
+	for key, val := range dl.Pairs {
+		pairs = append(pairs, key.String() + ": " + val.String())
+	}
+	out.WriteString("{")
+	out.WriteString(strings.Join(pairs, ", "))
+	out.WriteString("}")
+
+	return out.String()
+}
+
 type FunctionLiteral struct {
 	Token token.Token
 	Parameters []*Identifier
