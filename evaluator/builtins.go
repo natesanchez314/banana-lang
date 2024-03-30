@@ -1,6 +1,9 @@
 package evaluator
 
-import "banana/object"
+import(
+	"fmt"
+	"banana/object"
+)
 
 const(
 	wrongNumErr = "Wrong number of args, got=%d, expected=%d"
@@ -51,6 +54,14 @@ var builtins = map[string]*object.Builtin{
 			default:
 				return newError("Arg to `len` not supported, got %s", args[0].Type())
 			}
+		},
+	},
+	"print": &object.Builtin{
+		Fn: func(args ...object.Object) object.Object {
+			for _, arg := range args {
+				fmt.Println(arg.Inspect())
+			}
+			return NULL
 		},
 	},
 	"push": &object.Builtin{
