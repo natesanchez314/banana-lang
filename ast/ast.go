@@ -272,14 +272,27 @@ func (il *IntegerLiteral) expressionNode() {}
 func (il *IntegerLiteral) TokenLiteral() string { return il.Token.Literal }
 func (il *IntegerLiteral) String() string { return il.Token.Literal }
 
-
-type StringLiteral struct {
+type MacroLiteral struct {
 	Token token.Token
-	Val string
+	Parameters []*Identifier
+	Body *BlockStatement
 }
-func (sl *StringLiteral) expressionNode() {}
-func (sl *StringLiteral) TokenLiteral() string { return sl.Token.Literal }
-func (sl *StringLiteral) String() string { return sl.Token.Literal }
+func (ml *MacroLiteral) expressionNode() {}
+func (ml *MacroLiteral) TokenLiteral() string { return ml.Token.Literal }
+func (ml *MacroLiteral) String() string {
+	var out bytes.Buffer
+	params := []string{}
+	for _, p := range ml.Parameters {
+		params = append(params, p.String())
+	}
+	out.WriteString(ml.TokenLiteral())
+	out.WriteString("(")
+	out.WriteString(strings.Join(params, ", "))
+	out.WriteString(") ")
+	out.WriteString(ml.Body.String())
+
+	return out.String()
+}
 
 type PrefixExpression struct {
 	Token token.Token
@@ -297,3 +310,11 @@ func (pe *PrefixExpression) String() string {
 
 	return out.String()
 }
+
+type StringLiteral struct {
+	Token token.Token
+	Val string
+}
+func (sl *StringLiteral) expressionNode() {}
+func (sl *StringLiteral) TokenLiteral() string { return sl.Token.Literal }
+func (sl *StringLiteral) String() string { return sl.Token.Literal }

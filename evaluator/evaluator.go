@@ -54,6 +54,9 @@ func Eval(node ast.Node, env *object.Environment) object.Object {
 	case *ast.Boolean:
 		return nativeBoolToBooleanObject(node.Val)
 	case *ast.CallExpression:
+		if node.Fun.TokenLiteral() == "quote" {
+			return quote(node.Args[0], env)
+		}
 		function := Eval(node.Fun, env)
 		if isError(function) {
 			return function

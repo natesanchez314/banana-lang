@@ -18,7 +18,9 @@ const (
 	ERROR_OBJ = "ERROR"
 	FUNCTION_OBJ = "FUNCTION"
 	INTEGER_OBJ = "INTEGER"
+	MACRO_OBJ = "MACRO"
 	NULL_OBJ = "NULL"
+	QUOTE_OBJ = "QUOTE"
 	RETURN_VALUE_OBJ = "RETURN_VALUE"
 	STRING_OBJ = "STRING"
 )
@@ -133,9 +135,37 @@ func (i *Integer) Type() ObjectType { return INTEGER_OBJ }
 func (i *Integer) Inspect() string { return fmt.Sprintf("%d", i.Val) }
 func (i *Integer) DictKey() DictKey { return DictKey{Type: i.Type(), Val: uint64(i.Val)} }
 
+type Macro struct {
+	Parameters []*ast.Identifier
+	Body *ast.BlockStatement
+	Env *Environment
+}
+func (m *Macro) Type() ObjectType { return MACRO_OBJ }
+func (m *Macro) Inspect() string {
+	var out bytes.Buffer
+	params := []string{}
+	for _, p := range m.Parameters {
+		params = append(params, p.String())
+	}
+	out.WriteString("macro")
+	out.WriteString("(")
+	out.WriteString(strings.Join(params, ", "))
+	out.WriteString(") {\n")
+	out.WriteString(m.Body.String())
+	out.WriteString("\n}")
+
+	return out.String()
+}
+
 type Null struct {}
 func (n *Null) Type() ObjectType { return NULL_OBJ }
 func (n *Null) Inspect() string { return "null" }
+
+type Quote struct {
+	Node ast.Node
+}
+func (q *Quote) Type() ObjectType { return QUOTE_OBJ }
+func (q *Quote) Inspect() string { return "QUOTE(" + q.Node.String() + ")" }
 
 type ReturnValue struct {
 	Val Object
